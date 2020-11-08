@@ -1,117 +1,141 @@
-import DATA from "./data.js";
-import "./App.css";
+const DATA = [
+  {
+    letter: "Q",
+    keycode: 81,
+    id: "Open-HH",
+    url: "https://s3.amazonaws.com/freecodecamp/drums/Dsc_Oh.mp3",
+  },
+  {
+    letter: "W",
+    keycode: 87,
+    id: "Closed-HH",
+    url: "https://s3.amazonaws.com/freecodecamp/drums/Cev_H2.mp3",
+  },
+  {
+    letter: "E",
+    keycode: 69,
+    id: "Kick-and-Hat",
+    url: "https://s3.amazonaws.com/freecodecamp/drums/Kick_n_Hat.mp3",
+  },
+  {
+    letter: "A",
+    keycode: 65,
+    id: "Punchy-Kick",
+    url: "https://s3.amazonaws.com/freecodecamp/drums/punchy_kick_1.mp3",
+  },
+  {
+    letter: "S",
+    keycode: 83,
+    id: "Kick",
+    url: "https://s3.amazonaws.com/freecodecamp/drums/RP4_KICK_1.mp3",
+  },
+  {
+    letter: "D",
+    keycode: 68,
+    id: "Snare",
+    url: "https://s3.amazonaws.com/freecodecamp/drums/Brk_Snr.mp3",
+  },
+  {
+    letter: "Z",
+    keycode: 90,
+    id: "Side-Stick",
+    url: "https://s3.amazonaws.com/freecodecamp/drums/side_stick_1.mp3",
+  },
+  {
+    letter: "X",
+    keycode: 88,
+    id: "Clap",
+    url: "https://s3.amazonaws.com/freecodecamp/drums/Heater-6.mp3",
+  },
+  {
+    letter: "C",
+    keycode: 67,
+    id: "Shaker",
+    url: "https://s3.amazonaws.com/freecodecamp/drums/Give_us_a_light.mp3",
+  },
+];
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      current: "Click to play!",
-      enabled: true,
-    };
-  }
+const App = () => {
+  const [displayInfo, setDisplayInfo] = React.useState("Lets Play!");
+  const [power, setPower] = React.useState(true);
+  const keys = React.useState(DATA)[0];
 
-  play = (event) => {
-    this.setState({
-      current: event.target.id,
-    });
+  const play = (id) => {
+    setDisplayInfo(id);
   };
+  const enabledButtons = keys.map((item, idx) => (
+    <Box
+      audioLink={item.url}
+      play={play}
+      id={item.id}
+      letter={item.letter}
+      key={idx}
+      className="drum-pad"
+    />
+  ));
+  const disabledButtons = keys.map((item, idx) => (
+    <BlankBox
+      id={item.id}
+      letter={item.letter}
+      key={idx}
+      className="drum-pad"
+    />
+  ));
 
-  handleClick = () => {
-    this.setState({
-      enabled: !this.state.enabled,
-    });
-  };
-
-  render() {
-    // change render conditional to tertiary operator
-    const enabledButtons = DATA.map((item, idx) => (
-      <Box {...item} key={idx} play={this.play} className="drum-pad" />
-    ));
-
-    const disabledButtons = DATA.map((item, idx) => (
-      <BlankBox
-        id={item.id}
-        letter={item.letter}
-        key={idx}
-        className="drum-pad"
-      />
-    ));
-
-    return (
-      <div id="drum-machine">
-        <div id="display">{this.state.current}</div>
-
-        <div id="button">
-          <button onClick={this.handleClick}>Power</button>
-        </div>
-
-        <div id="drum-pads">
-          {this.state.enabled ? enabledButtons : disabledButtons}
-        </div>
-      </div>
-    );
-  }
-}
-
-// How audio works:
-
-// audio (url link) is an object on the DOM. Create a ref in react to use its methods eg audio.play
-// React.creatRef works slightly different and plays the audio a bit worse so I created
-// the ref inside the jsx audio section
-
-// window.focus() in component did mount
-
-class Box extends React.Component {
-  constructor(props) {
-    super(props);
-    // this.audio = React.createRef(); (this is created in section JSX instead)
-  }
-
-  componentDidMount() {
-    document.addEventListener("keydown", function (e) {
-      if (e.keyCode === this.props.keycode) {
-        playSound();
-      }
-    });
-    // window.focus(); //focus on window to allow keydown events immediately (annoying if app is below as it will keep focus on app)
-  }
-
-  // required cleanup
-  componentWillUnmount() {
-    document.removeEventListener("keydown", this.handleKeydown);
-  }
-
-  playSound = (id) => {
-    this.audio.play();
-    this.audio.currentTime = 0;
-    this.props.play(id);
-  };
-
-  render() {
-    const letter = this.props.letter;
-    const audio = this.props.url;
-    const id = this.props.id;
-
-    return (
-      <div onClick={this.playSound} id={id} className="drum-pad">
-        {letter}
-
-        <audio
-          ref={(ref) => (this.audio = ref)}
-          src={audio}
-          className="clip"
-          id={letter}
-        />
-      </div>
-    );
-  }
-}
-
-// Blank Component for power off
-const BlankBox = (props) => {
   return (
-    <div className="drum-pad" id={props.id}>
-      {props.letter}
+    <div id="drum-machine">
+      <div id="display">{power ? displayInfo : "Power Off."}</div>
+      <div id="button">
+        <button
+          onClick={() => {
+            setPower(!power);
+            if (power) setDisplayInfo("Lets Play!");
+          }}
+        >
+          Power
+        </button>
+      </div>
+      <div id="drum-pads">{power ? enabledButtons : disabledButtons}</div>
+    </div>
+  );
+};
+
+const Box = ({ id, letter, play, audioLink }) => {
+  let audio = new Audio(audioLink);
+  return (
+    <div
+      className="drum-pad"
+      id={id}
+      onClick={() => {
+        // audio.play();
+        //play(id);
+        // This is just to pass the fcc tests
+        // The 2 lines commented out above functionally work fine in replacement
+        // tests need to find correct id etc so just gets confusing for no reason
+        const audio = document.getElementById(letter);
+        if (audio) {
+          audio.currentTime = 0;
+          audio.play();
+          const dataObject = DATA.filter((i) => i.letter === letter)[0].id;
+          document.getElementById("display").innerText = dataObject;
+        }
+      }}
+    >
+      <audio
+        ref={(ref) => (this.audio = ref)}
+        src={audioLink}
+        className="clip"
+        id={letter}
+      />
+      {letter}
+    </div>
+  );
+};
+
+const BlankBox = ({ id, letter }) => {
+  return (
+    <div className="drum-pad" id={id}>
+      {letter}
     </div>
   );
 };
@@ -127,8 +151,8 @@ document.addEventListener("keydown", (e) => {
     audio.currentTime = 0;
     audio.play();
     const dataObject = DATA.filter((i) => i.letter === id)[0].id;
-    document.getElementById("info-box").innerText = dataObject;
+    document.getElementById("display").innerText = dataObject;
   }
 });
 
-export default App;
+ReactDOM.render(<App />, document.getElementById("root"));
